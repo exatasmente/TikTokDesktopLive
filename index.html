@@ -525,6 +525,7 @@
 		
 			wakeUpSoundCoinGoal = parseInt(localStorage.getItem('wakeUpSoundCoinGoal') || '100') || 0;
 			wakeUpSoundCoin = parseInt(localStorage.getItem('wakeUpSoundCoin') || '0') || 0;
+			
 
 			socket.on('NewAudio', (audio) => {
 				console.log(audio);
@@ -625,7 +626,7 @@
 					'NewGift',
 					({ giftPictureUrl, audio, nickname, profilePictureUrl, coins, count }) => {
 						wakeUpSoundCoin += coins;
-
+						window.dispatchEvent(new CustomEvent('updateGiftCount', { detail: wakeUpSoundCoin }));
 						if (wakeUpSoundCoin >= wakeUpSoundCoinGoal) {
 							audioQueue.push({
 								audio: 'wakeUp',
@@ -642,9 +643,11 @@
 							}
 
 							localStorage.setItem('wakeUpSoundCoinGoal', wakeUpSoundCoinGoal);
+							window.dispatchEvent(new CustomEvent('updateGiftGoal', { detail: wakeUpSoundCoin }));
 						}
 
 						localStorage.setItem('wakeUpSoundCoin', wakeUpSoundCoin);
+						window.dispatchEvent(new CustomEvent('updateGiftCount', { detail: wakeUpSoundCoin }));
 						for (let i = 0; i < count; i++) {
 							audioQueue.push({
 								giftPictureUrl,
@@ -901,6 +904,7 @@
 			style="height: 80px;left: 0%; width: 100%; position:absolute; top : 0px; z-index: 99">
 			<p class="text-white text-center text-bold">Meta:</p>
 			<p class="text-white text-center text-bold text-xl mt-4" x-data="{wakeUpSoundCoin : localStorage.getItem('wakeUpSoundCoin') || 0, wakeUpSoundCoinGoal: localStorage.getItem('wakeUpSoundCoinGoal') || 100}"
+				x-on:updateGiftCount.window="wakeUpSoundCoin = $event.detail" x-on:updateGiftGoal.window="wakeUpSoundCoinGoal = $event.detail"
              x-text="wakeUpSoundCoin  + '/' + wakeUpSoundCoinGoal">
 			</p>
 		</div>
