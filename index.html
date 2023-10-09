@@ -129,7 +129,7 @@
 		const socketUrl = 'http://' + 'localhost';
 		window.serverUrl = socketUrl;
 		window.kickUser = queryArgs.get('kickUser') || 'leaogameplay';
-        window.riveSrc = queryArgs.get('riveSrc') || '/default.riv';
+        window.riveSrc = queryArgs.get('riveSrc') || './default.riv';
 		window.iframeSrc = `https://player.kick.com/${kickUser}?autoplay=true`
 
 		const socketPort = queryArgs.get('port') || 3000;
@@ -917,7 +917,7 @@
 <script>
 	if ('serviceWorker' in navigator) {
 	  		navigator.serviceWorker
-			.register('/sw.js')
+			.register('./sw.js')
 			.then(serviceWorker => {
 		  	console.log('Service Worker registered: ' + serviceWorker);
 			})
