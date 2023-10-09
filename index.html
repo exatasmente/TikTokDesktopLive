@@ -126,7 +126,7 @@
 	</style>
 	<script>
 		const queryArgs = new URLSearchParams(window.location.search);
-		const socketUrl = 'http://' + 'localhost';
+		const socketUrl =  queryArgs.get('socketUrl') || 'localhost';
 		window.serverUrl = socketUrl;
 		window.kickUser = queryArgs.get('kickUser') || 'leaogameplay';
         window.riveSrc = queryArgs.get('riveSrc') || './default.riv';
