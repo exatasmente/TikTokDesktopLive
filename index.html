@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-<<<<<<< HEAD
 
 <head>
 	<link rel="icon" href="%sveltekit.assets%/favicon.png" />
@@ -132,46 +131,6 @@
 		window.kickUser = queryArgs.get('kickUser') || 'leaogameplay';
         window.riveSrc = queryArgs.get('riveSrc') || 'http://github.com/exatasmente/TikTokDesktopLive/raw/gh-pages/models/default.riv';
 		window.iframeSrc = `https://player.kick.com/${kickUser}?autoplay=true`
-=======
-	<head>
-		<link rel="icon" href="./favicon.png" />
-		<meta charset="UTF-8">
-    
-    <!-- block zoom -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <!-- possible content values: default, black or black-translucent -->
-    <meta name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>TikTok</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js" ></script>
-    <link href="https://unpkg.com/tailwindcss@0.3.0/dist/tailwind.min.css" rel="stylesheet">
-	<script>		
-		const queryArgs = new URLSearchParams(window.location.search);
-		const socketUrl = queryArgs.get('url') || ('http://' + window.location.hostname);
-		window.serverUrl = socketUrl;
-
-		document.addEventListener('DOMContentLoaded', () => {
-			head = document.head;
-			const ScriptTag = document.createElement('script');
-        
-			ScriptTag.src = window.serverUrl + '/videojs/js/video.min.js';
-			head.append(ScriptTag);
-
-			const httpScriptTag = document.createElement('script');
-			httpScriptTag.src = window.serverUrl + '/videojs/js/videojs-http-streaming.js';
-			head.append(httpScriptTag);
-
-			const styleTag = document.createElement('link');
-			styleTag.rel = 'stylesheet';
-			styleTag.href = window.serverUrl + '/videojs/js/video-js.css';
-			head.append(styleTag);
-			
-		});
->>>>>>> 06e96332a0d8bc26a0830e36771954b9cf17c664
 
 		const socketPort = queryArgs.get('port') || 3000;
 		const socket = io(socketUrl + ':' + socketPort);
@@ -508,7 +467,6 @@
 
 		}
 	</script>
-<<<<<<< HEAD
 	<script>
         
 			const audioQueue = window.PriorityQueue();
@@ -872,146 +830,15 @@
 						values,
 						title,
 						audio,
-=======
-		<style>
-			body,
-		html {
-		  margin: 0;
-		  padding: 0;
-		  background: #25252B;
-		}
-		* {
-		  touch-action: manipulation;
-		}
-		*,
-		*:before,
-		*:after {
-		  box-sizing: border-box;
-		}
-		body {
-			overflow-x: hidden;
-		  position: relative;
-		  color: white;
-		  letter-spacing: 2px;
-		  font-size: 11px;
-		  font-family: 'Poppins', sans-serif;
-		}
-		.wrapper {
-		  display: flex;
-		  flex-direction: column;
-		  justify-content: center;
-		  align-items: center;
-		}
-		#c {
-		  position: absolute;
-		  top: 0;
-		  width: 100%;
-		  height: 100%;
-		  display: block;
-		}
-		
-		.loading {
-		  position: fixed;
-		  z-index: 50;
-		  width: 100%;
-		  height: 100%;
-		  top: 0; left: 0;
-		  background: #f1f1f1;
-		  display: flex;
-		  justify-content: center;
-		  align-items: center;
-		}
-		
-		.loader{
-		  -webkit-perspective: 120px;
-		  -moz-perspective: 120px;
-		  -ms-perspective: 120px;
-		  perspective: 120px;
-		  width: 100px;
-		  height: 100px;
-		}
-		
-		.loader:before{
-		  content: "";
-		  position: absolute;
-		  left: 25px;
-		  top: 25px;
-		  width: 50px;
-		  height: 50px;
-		  background-color: #9bffaf;
-		  animation: flip 1s infinite;
-		}
-		
-		@keyframes flip {
-		  0% {
-			transform: rotate(0);
-		  }
-		
-		  50% {
-			transform: rotateY(180deg);
-		  }
-		
-		  100% {
-			transform: rotateY(180deg)  rotateX(180deg);
-		  }
-		}
-		
-		#container {
-		  position: relative;
-		}
-		#container canvas, #overlay {
-		  position: absolute;
-		}
-		canvas {
-		  border: 1px solid black;
-		}
-
-		#live_stream {
-			width: 100%;
-		}
-			</style>
-		
-		<link rel="modulepreload" href="./_app/immutable/entry/start.f9152869.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/scheduler.fe7ec8f5.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/singletons.46dabb64.js">
-		<link rel="modulepreload" href="./_app/immutable/entry/app.4824846d.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/index.2d7f3b1d.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/0.8e03357a.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/2.d2d25589.js">
-	</head>
-	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">  <div class="app">  <div style="position: absolute;width: 194px;height: 100px;z-index: 99;background-color: #16171b;bottom: 0px;right: 0;"></div>  <div style="opacity:50%;bottom:1%; position:absolute;z-index: 998; right:0; width:60%" class="w-full items-center"></div>  <iframe id="live_stream" width="100%" height="400" frameborder="no" scrolling="no" allow="fullscreen" title="Live feed"></iframe> <div class="bg-purple rounded-xl shadow-sm overflow-hidden p-1" style="height: 80px;left: 0%; width: 100%; position:absolute; top : 0px; z-index: 99"><p class="text-white text-center text-bold" data-svelte-h="svelte-18ynqab">Meta:</p> <p class="text-white text-center text-bold text-xl mt-4">0 / 100</p></div> <div class="container wrapper" data-svelte-h="svelte-8entf6"><canvas id="canvas" width="800" height="350"></canvas></div></div> 
-			
-			<script>
-				{
-					__sveltekit_1c8229h = {
-						base: new URL(".", location).pathname.slice(0, -1),
-						env: {}
->>>>>>> 06e96332a0d8bc26a0830e36771954b9cf17c664
 					};
 
 					localStorage.setItem('currentMeta', JSON.stringify(currentMeta));
 
-<<<<<<< HEAD
 					audioQueue.push({
 						audio: audio || 'meta',
 						nickname: 'Sistema',
 						profilePictureUrl: '',
 						priority: MAX_PRIORITY
-=======
-					const data = [null,null];
-
-					Promise.all([
-						import("./_app/immutable/entry/start.f9152869.js"),
-						import("./_app/immutable/entry/app.4824846d.js")
-					]).then(([kit, app]) => {
-						kit.start(app, element, {
-							node_ids: [0, 2],
-							data,
-							form: null,
-							error: null
-						});
->>>>>>> 06e96332a0d8bc26a0830e36771954b9cf17c664
 					});
 				});
 
