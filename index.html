@@ -1,161 +1,914 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<link rel="icon" href="./favicon.png" />
-		<meta charset="UTF-8">
-    
-    <!-- block zoom -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    
-    <!-- possible content values: default, black or black-translucent -->
-    <meta name="apple-mobile-web-app-status-bar-style"
-        content="black-translucent">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>TikTok</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js" ></script>
-    <link href="https://unpkg.com/tailwindcss@0.3.0/dist/tailwind.min.css" rel="stylesheet">
-	
-	<script>		
+
+<head>
+	<link rel="icon" href="%sveltekit.assets%/favicon.png" />
+	<meta charset="UTF-8">
+
+	<!-- block zoom -->
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+
+	<!-- possible content values: default, black or black-translucent -->
+	<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>TikTok</title>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+	<script src="https://unpkg.com/@rive-app/canvas@2.1.0" defer></script>
+	<script src="https://unpkg.com/alpinejs" defer></script>
+	<link defer href="https://unpkg.com/tailwindcss@0.3.0/dist/tailwind.min.css" rel="stylesheet">
+	<style>
+		body,
+		html {
+			margin: 0;
+			padding: 0;
+			background: #16171b;
+		}
+
+		* {
+			touch-action: manipulation;
+		}
+
+		*,
+		*:before,
+		*:after {
+			box-sizing: border-box;
+		}
+
+		body {
+			overflow-x: hidden;
+			position: relative;
+			color: white;
+			letter-spacing: 2px;
+			font-size: 11px;
+			font-family: 'Poppins', sans-serif;
+		}
+
+		.wrapper {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+		}
+
+		#c {
+			position: absolute;
+			top: 0;
+			width: 100%;
+			height: 100%;
+			display: block;
+		}
+
+		.loading {
+			position: fixed;
+			z-index: 50;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			left: 0;
+			background: #f1f1f1;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.loader {
+			-webkit-perspective: 120px;
+			-moz-perspective: 120px;
+			-ms-perspective: 120px;
+			perspective: 120px;
+			width: 100px;
+			height: 100px;
+		}
+
+		.loader:before {
+			content: "";
+			position: absolute;
+			left: 25px;
+			top: 25px;
+			width: 50px;
+			height: 50px;
+			background-color: #9bffaf;
+			animation: flip 1s infinite;
+		}
+
+		@keyframes flip {
+			0% {
+				transform: rotate(0);
+			}
+
+			50% {
+				transform: rotateY(180deg);
+			}
+
+			100% {
+				transform: rotateY(180deg) rotateX(180deg);
+			}
+		}
+
+		#container {
+			position: relative;
+		}
+
+		#container canvas,
+		#overlay {
+			position: absolute;
+		}
+
+		canvas {
+			border: 1px solid black;
+		}
+
+		#live_stream {
+			width: 100%;
+		}
+	</style>
+	<script>
 		const queryArgs = new URLSearchParams(window.location.search);
-		const socketUrl = queryArgs.get('url') || 'http://localhost';
+		const socketUrl = 'http://' + 'localhost';
+		window.serverUrl = socketUrl;
+		window.kickUser = queryArgs.get('kickUser') || 'leaogameplay';
+        window.riveSrc = queryArgs.get('riveSrc') || 'http://github.com/exatasmente/TikTokDesktopLive/raw/gh-pages/models/default.riv';
+		window.iframeSrc = `https://player.kick.com/${kickUser}?autoplay=true`
+
 		const socketPort = queryArgs.get('port') || 3000;
 		const socket = io(socketUrl + ':' + socketPort);
 		socket.on('connect', () => {
 			console.log('connected');
 		});
+		const MAX_PRIORITY = 100;
+		const GIFTS_PRIORITY = 90;
+		const FOLLOWER_PRIORITY = 80;
+		const JOIN_PRIORITY = 70;
+		const LIKE_PRIORITY = 60;
+		const AD_PRIORITY = 10;
 
+		const defaultCb = () => {
+			const audios = [
+				'audio/ad.mp3',
+				'audio/ad1.mp3',
+
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+		}
+
+		const flowersCb = () => {
+			const roseAudios = [
+				'audio/rosa.mp3',
+				'audio/rosa.mp3',
+				'audio/rosa1.mp3',
+				'audio/rosa.mp3',
+				'audio/flowers_1.mp3',
+				'audio/rosa.mp3',
+				'audio/rosa.mp3',
+				'audio/rosa.mp3',
+				'audio/rosa.mp3',
+
+			]
+
+
+			return roseAudios[Math.floor(Math.random() * roseAudios.length)]
+
+
+		}
+
+		const tiktokCb = () => {
+			const tiktokAudios = [
+				'audio/tiktok.mp3',
+				'audio/tiktok_1.mp3',
+				'audio/tiktok_2.mp3',
+			]
+
+			return tiktokAudios[Math.floor(Math.random() * tiktokAudios.length)]
+		}
+
+		const heartsCb = () => {
+			return 'audio/random_1.mp3'
+		}
+
+		const kissCb = () => {
+			return 'audio/random_1.mp3'
+		}
+
+		const coffeeCb = () => {
+			const audios = [
+				'audio/coffe_3.mp3',
+				'audio/coffee.mp3',
+				'audio/coffee+2.mp3',
+				'audio/coffe_1.mp3',
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+		}
+
+		const trophyCb = () => {
+
+			return 'audio/numberone_1.mp3'
+		}
+
+
+
+		const unicornCb = () => {
+			return defaultCb()
+		}
+
+		const foodCb = ({ giftId }) => {
+			if (giftId == '6416') {
+				const audios = [
+					'audio/cookie_1.mp3',
+					'audio/cookie_2.mp3',
+					'audio/cookie_3.mp3',
+					'audio/cookie.mp3',
+				]
+
+				return audios[Math.floor(Math.random() * audios.length)]
+			}
+
+			return defaultCb()
+		}
+
+		const partyCb = () => {
+			return defaultCb()
+		}
+
+		const chocolateCb = ({ lastAudio }) => {
+
+			if (lastAudio === 'audio/rosa.mp3') {
+				const flowersAndChocolatesAudios = [
+					'audio/flowers_and_chocolate_1.mp3',
+					'audio/flowers_and_chocolate.mp3',
+				]
+
+				return flowersAndChocolatesAudios[Math.floor(Math.random() * flowersAndChocolatesAudios.length)]
+			}
+
+
+			const audios = [
+				'audio/chocolate.mp3',
+				'audio/chocolate1.mp3',
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+		}
+
+		const hugCb = () => {
+			return 'audio/powerhug.mp3'
+		}
+
+		const perfumeCb = () => {
+			return defaultCb()
+		}
+
+		const fireCb = () => {
+			return 'audio/fire.mp3'
+		}
+
+		const birthCakeCb = () => {
+			return defaultCb()
+		}
+
+		const galaxyCb = () => {
+			return defaultCb()
+		}
+
+		const amazingCb = () => {
+			return defaultCb()
+		}
+
+		const loveYouCb = () => {
+			return 'audio/amei.mp3'
+		}
+
+		const crwonCb = () => {
+			return defaultCb()
+		}
+
+		const asmrCb = () => {
+			const audios = [
+				'audio/asmr_1.mp3',
+				'audio/asmr_2.mp3',
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+		}
+
+		const thumbsUpCb = () => {
+			return defaultCb()
+		}
+
+		const animalCb = () => {
+			return defaultCb()
+		}
+
+		const likeCb = () => {
+			const audios = [
+				'audio/like_1.mp3',
+				'audio/like_2.mp3',
+				'audio/like_3.mp3',
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+		}
+
+		const subscribeCb = () => {
+			const audios = [
+				'audio/subscribe_1.mp3',
+				'audio/subscribe_2.mp3',
+				'audio/subscribe_3.mp3',
+
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+		}
+
+		const joinCb = () => {
+			return 'audio/join.mp3'
+		}
+
+		const wakeUpCb = () => {
+			const audios = [
+				'audio/wakeUp.mp3',
+				'audio/wakeUp1.mp3',
+				'audio/wakeUp2.mp3',
+				'audio/wakeUp3.mp3',
+
+			]
+
+			return audios[Math.floor(Math.random() * audios.length)]
+
+		}
+
+
+		const audios = {
+			'like': likeCb,
+			'subscribe': subscribeCb,
+			'wakeUp': wakeUpCb,
+			'join': joinCb,
+			"5269": tiktokCb,
+			"5327": heartsCb,
+			"5328": kissCb,
+			"5333": coffeeCb,
+			"5338": unicornCb,
+			"5460": trophyCb,
+			"5487": heartsCb,
+			"5494": defaultCb,
+			"5547": foodCb,
+			"5566": heartsCb,
+			"5585": partyCb,
+			"5586": heartsCb,
+			"5630": chocolateCb,
+			"5631": hugCb,
+			"5655": flowersCb,
+			"5658": perfumeCb,
+			"5719": fireCb,
+			"5780": flowersCb,
+			"5867": birthCakeCb,
+			"5879": foodCb,
+			"5886": galaxyCb,
+			"5983": amazingCb,
+			"5984": loveYouCb,
+			"6034": flowersCb,
+			"6097": crwonCb,
+			"6113": foodCb,
+			"6148": flowersCb,
+			"6185": asmrCb,
+			"6240": asmrCb,
+			"6246": thumbsUpCb,
+			"6247": heartsCb,
+			"6265": animalCb,
+			"6267": animalCb,
+			"6271": animalCb,
+			"6348": animalCb,
+			"6369": animalCb,
+			"6416": foodCb,
+			"7934": heartsCb,
+		}
+
+
+		const getAudio = (id) => {
+			return audios[id] || defaultCb
+		}
+
+		window.PriorityQueue = () => {
+			const array = []
+
+			const LEFT = (i) => 2 * i + 1
+			const RIGHT = (i) => 2 * i + 2
+			const PARENT = (i) => Math.floor((i - 1) / 2)
+
+			const swap = (i, j) => {
+				const temp = array[i]
+				array[i] = array[j]
+				array[j] = temp
+			}
+
+			const insert = (audio) => {
+				array.push(audio)
+				let i = array.length - 1
+				while (i > 0 && array[PARENT(i)].priority < array[i].priority) {
+					swap(i, PARENT(i))
+					i = PARENT(i)
+				}
+			}
+
+			const heapify = (i) => {
+				const l = LEFT(i)
+				const r = RIGHT(i)
+				let largest = i
+
+				if (l < array.length && array[l].priority > array[largest].priority) {
+					largest = l
+				}
+
+				if (r < array.length && array[r].priority > array[largest].priority) {
+					largest = r
+				}
+
+				if (largest !== i) {
+					swap(i, largest)
+					heapify(largest)
+				}
+			}
+
+			const extractMax = () => {
+				if (array.length === 0) {
+					return null
+				}
+
+				const max = array[0]
+				array[0] = array[array.length - 1]
+				array.pop()
+				heapify(0)
+				return max
+			}
+
+			const push = (audio) => {
+				insert(audio)
+			}
+
+			const pop = () => {
+				return extractMax()
+			}
+
+			const peek = () => {
+				return array[0]
+			}
+
+			return {
+				push,
+				pop,
+				peek,
+				length: () => array.length,
+				toArray: () => array,
+			}
+
+
+		}
 	</script>
-		<style>
-			body,
-		html {
-		  margin: 0;
-		  padding: 0;
-		  background: #25252B;
-		}
-		* {
-		  touch-action: manipulation;
-		}
-		*,
-		*:before,
-		*:after {
-		  box-sizing: border-box;
-		}
-		body {
-			overflow-x: hidden;
-		  position: relative;
-		  color: white;
-		  letter-spacing: 2px;
-		  font-size: 11px;
-		  font-family: 'Poppins', sans-serif;
-		}
-		.wrapper {
-		  display: flex;
-		  flex-direction: column;
-		  justify-content: center;
-		  align-items: center;
-		}
-		#c {
-		  position: absolute;
-		  top: 0;
-		  width: 100%;
-		  height: 100%;
-		  display: block;
-		}
-		
-		.loading {
-		  position: fixed;
-		  z-index: 50;
-		  width: 100%;
-		  height: 100%;
-		  top: 0; left: 0;
-		  background: #f1f1f1;
-		  display: flex;
-		  justify-content: center;
-		  align-items: center;
-		}
-		
-		.loader{
-		  -webkit-perspective: 120px;
-		  -moz-perspective: 120px;
-		  -ms-perspective: 120px;
-		  perspective: 120px;
-		  width: 100px;
-		  height: 100px;
-		}
-		
-		.loader:before{
-		  content: "";
-		  position: absolute;
-		  left: 25px;
-		  top: 25px;
-		  width: 50px;
-		  height: 50px;
-		  background-color: #9bffaf;
-		  animation: flip 1s infinite;
-		}
-		
-		@keyframes flip {
-		  0% {
-			transform: rotate(0);
-		  }
-		
-		  50% {
-			transform: rotateY(180deg);
-		  }
-		
-		  100% {
-			transform: rotateY(180deg)  rotateX(180deg);
-		  }
-		}
-		
-		#container {
-		  position: relative;
-		}
-		#container canvas, #overlay {
-		  position: absolute;
-		}
-		canvas {
-		  border: 1px solid black;
-		}
-			</style>
-		
-		<link rel="modulepreload" href="./_app/immutable/entry/start.7d69d75f.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/scheduler.3a937872.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/singletons.8ecd81bc.js">
-		<link rel="modulepreload" href="./_app/immutable/entry/app.1111ac8c.js">
-		<link rel="modulepreload" href="./_app/immutable/chunks/index.6b6aad0f.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/0.cc7514b0.js">
-		<link rel="modulepreload" href="./_app/immutable/nodes/2.f35e1b9d.js">
-	</head>
-	<body data-sveltekit-preload-data="hover">
-		<div style="display: contents">  <div class="app">  <div style="position: absolute;width: 194px;height: 100px;z-index: 99;background-color: #16171b;bottom: 0px;right: 0;"></div>  <iframe src="https://player.kick.com/leaogameplay?autoplay=true" width="500" height="400" frameborder="no" scrolling="no" allow="fullscreen" title="Live feed"></iframe> <div class="bg-purple rounded-xl shadow-sm overflow-hidden p-1" style="height: 80px;left: 0%; width: 100%"><p class="text-white text-center text-bold" data-svelte-h="svelte-jpr79n">Meta de Moedas:</p> <p class="text-white text-center text-bold text-xl mt-4">0 / 100</p></div> <div class="container wrapper" data-svelte-h="svelte-8entf6"><canvas id="canvas" width="800" height="350"></canvas></div></div> 
+	<script>
+        
+			const audioQueue = window.PriorityQueue();
+			const messagesQueue = window.PriorityQueue();
+			let audioElement = null;
+
+			let renderIframe = false;
+
+			let lastMessage = {
+				nickname: '',
+				message: '',
+				profilePictureUrl: '',
+				message: '',
+				color: ''
+			};
+
+			let lastGift = {
+				audio: '',
+				nickname: '',
+				giftPictureUrl: '',
+				profilePictureUrl: ''
+			};
+
+
+			let audioQueueInterval = null;
+			let messagesInterval = null;
+			let wakeUpSoundCoinGoal = 100;
+
+			let wakeUpSoundCoin = 0;
+
+			let isSleeping = true;
+
+			let currentMeta = {
+				type: '',
+				values: []
+			};
+
+			let videoSrc = '';
+			let last10Messages = [];
+
+			const events = {
+				NewGift: (input) => {
+					input.value = 1;
+
+					setTimeout(() => {
+						input.value = 0;
+					}, 6000);
+				},
+				StopGift: (input) => {
+					input.value = 0;
+				}
+			};
 			
-			<script>
-				{
-					__sveltekit_sxkpmn = {
-						base: new URL(".", location).pathname.slice(0, -1),
-						env: {}
+
+
+		
+			wakeUpSoundCoinGoal = parseInt(localStorage.getItem('wakeUpSoundCoinGoal') || '100') || 0;
+			wakeUpSoundCoin = parseInt(localStorage.getItem('wakeUpSoundCoin') || '0') || 0;
+
+			socket.on('NewAudio', (audio) => {
+				console.log(audio);
+				audioQueue.push({
+					audio: audio,
+					nickname: 'Sistema',
+					profilePictureUrl: '',
+					priority: FOLLOWER_PRIORITY
+				});
+
+
+			});
+			const setUp = () => {
+				if (window.ready) {
+					return;
+				}
+				const lastAudioTime = localStorage.getItem('lastAudioTime') || 0;
+				renderIframe = true;
+				document.body.onclick = () => {
+					audioQueue.push({
+						audio: 'ad',
+						nickname: 'Sistema',
+						profilePictureUrl: ''
+					});
+				};
+                if (window.riveSrc) {
+                    window.riveElement = new rive.Rive({
+                        src: window.riveSrc,
+                        canvas: document.getElementById('canvas'),
+                        stateMachines: 'GirlState',
+                        autoplay: true
+                    });
+                }
+
+
+				const stop = () => {
+                    if (!window.riveElement) {
+                        return;
+                    }
+					const inputs = window.riveElement.stateMachineInputs('GirlState');
+					const input = inputs.find((input) => input.name === 'Stop Gift');
+
+					if (input) {
+						events['StopGift'](input);
+					}
+				};
+
+				audioQueueInterval = setInterval(() => {
+					if (audioQueue.length() > 0 && (!audioElement || audioElement.ended)) {
+						const data = audioQueue.pop();
+						let audio = data.audio;
+
+						handleEvent('NewGift');
+						if (typeof audio === 'string' && !audio.endsWith('.mp3')) {
+							audio = getAudio(audio)
+								({ giftId: audio });
+						} else if (audio.bytes) {
+							//socket io mp3 audio arraybuffer
+                            audio = URL.createObjectURL(new Blob([new Uint8Array(audio.bytes)]));
+						
+                            console.log(audio);
+						}
+
+						
+
+						audioElement = new Audio(audio);
+						if (data.giftPictureUrl) {
+							lastGift = data;
+							lastGift.lastAudio = audio;
+						}
+
+
+
+						audioElement.onloadedmetadata = () => {
+							setTimeout(() => {
+								handleEvent('StopGift');
+							}, audioElement.duration * 1000);
+						};
+						audioElement.volume = 0.7;
+						audioElement.play();
+
+					}
+				}, 1000);
+				const handleEvent = (event) => {
+                    if (!window.riveElement) {
+                        return;
+                    }
+
+					const inputs = window.riveElement.stateMachineInputs('GirlState');
+					const input = inputs.find((input) => input.name === 'New Gift');
+
+					if (input) {
+						events[event](input);
+					}
+				};
+
+				socket.on(
+					'NewGift',
+					({ giftPictureUrl, audio, nickname, profilePictureUrl, coins, count }) => {
+						wakeUpSoundCoin += coins;
+
+						if (wakeUpSoundCoin >= wakeUpSoundCoinGoal) {
+							audioQueue.push({
+								audio: 'wakeUp',
+								nickname: 'Sistema',
+								profilePictureUrl: '',
+								priority: MAX_PRIORITY
+							});
+
+							wakeUpSoundCoin = 0;
+							wakeUpSoundCoinGoal = wakeUpSoundCoinGoal / 2;
+
+							if (wakeUpSoundCoinGoal < 30) {
+								wakeUpSoundCoinGoal = 30;
+							}
+
+							localStorage.setItem('wakeUpSoundCoinGoal', wakeUpSoundCoinGoal);
+						}
+
+						localStorage.setItem('wakeUpSoundCoin', wakeUpSoundCoin);
+						for (let i = 0; i < count; i++) {
+							audioQueue.push({
+								giftPictureUrl,
+								nickname,
+								profilePictureUrl,
+								audio,
+								priority: GIFTS_PRIORITY
+							});
+						}
+					}
+				);
+
+				socket.on('NewMessage', (event) => {
+					const { profilePictureUrl, message, nickname, color, textColor } = event;
+					console.log(event);
+					messagesQueue.push({
+						profilePictureUrl,
+						nickname,
+						message,
+						color,
+						textColor,
+						priority: GIFTS_PRIORITY
+					});
+
+					if (!message.startsWith('Agora Jogando')) {
+						last10Messages = [...last10Messages, {
+							profilePictureUrl,
+							nickname,
+							message,
+							color,
+							textColor,
+							priority: GIFTS_PRIORITY
+						}];
+
+					}
+					if (last10Messages.length > 4) {
+						last10Messages = last10Messages.slice(1);
+					}
+				});
+				const uniqueJoin = {};
+				socket.on('NewJoin', (event) => {
+					const { audio, profilePictureUrl, nickname, color, textColor } = event;
+
+					messagesQueue.push({
+						profilePictureUrl,
+						nickname,
+						message: 'entrou na live!',
+						color,
+						textColor,
+						priority: JOIN_PRIORITY
+					});
+
+					if (uniqueJoin[nickname]) {
+						return;
+					}
+
+					uniqueJoin[nickname] = true;
+
+					audioQueue.push({
+						audio: audio || 'join',
+						nickname,
+						profilePictureUrl,
+						priority: JOIN_PRIORITY
+					});
+				});
+
+				socket.on('NewLike', (event) => {
+					const { audio, profilePictureUrl, nickname, totalLikeCount, likeCount, color, textColor } = event;
+
+					messagesQueue.push({
+						profilePictureUrl,
+						nickname,
+						message: `deu ${likeCount} likes! Total: ${totalLikeCount}`,
+						color,
+						textColor,
+						priority: LIKE_PRIORITY
+					});
+
+					audioQueue.push({
+						audio: audio || 'like',
+						nickname,
+						profilePictureUrl,
+						priority: LIKE_PRIORITY
+					});
+				});
+
+				socket.on('NewFollower', (event) => {
+					const { audio, profilePictureUrl, nickname, color, textColor } = event;
+
+					messagesQueue.push({
+						profilePictureUrl,
+						nickname,
+						message: `começou a seguir!`,
+						color,
+						textColor,
+						priority: FOLLOWER_PRIORITY
+					});
+
+					audioQueue.push({
+						audio: audio || 'follow',
+						nickname,
+						profilePictureUrl,
+						priority: FOLLOWER_PRIORITY
+					});
+				});
+
+				socket.on('NewSubscriber', (event) => {
+					const { audio, profilePictureUrl, nickname, color, textColor } = event;
+
+					messagesQueue.push({
+						profilePictureUrl,
+						nickname,
+						message: `se juntou ao bando!`,
+						color,
+						textColor,
+						priority: FOLLOWER_PRIORITY
+					});
+
+					audioQueue.push({
+						audio: audio || 'subscribe',
+						nickname,
+						profilePictureUrl,
+						priority: FOLLOWER_PRIORITY
+					});
+				});
+
+				socket.on('NewShare', (event) => {
+					const { audio, profilePictureUrl, nickname, color, textColor } = event;
+
+					messagesQueue.push({
+						profilePictureUrl,
+						nickname,
+						message: `compartilhou a live!`,
+						color,
+						textColor,
+						priority: FOLLOWER_PRIORITY
+					});
+
+					audioQueue.push({
+						audio: audio || 'share',
+						nickname,
+						profilePictureUrl,
+						priority: FOLLOWER_PRIORITY
+					});
+				});
+
+
+				socket.on('ViewerCount', (event) => {
+					const { viewerCount } = event;
+					messagesQueue.push({
+						profilePictureUrl: '',
+						nickname: '',
+						message: `Total de espectadores: ${viewerCount}`,
+						color: 'black',
+						textColor: 'white'
+					});
+				});
+
+				socket.on('RemoveHtmlElement', (event) => {
+					const { id } = event;
+					const element = document.getElementById(id);
+					if (element) {
+						element.remove();
+					}
+				});
+
+				socket.on('NewHtmlElement', (event) => {
+					const { id, html } = event;
+					const element = document.getElementById(id);
+					if (element) {
+						element.remove();
+					}
+
+					document.body.insertAdjacentHTML('beforeend', html);
+				});
+
+				socket.on('NewMeta', (event) => {
+					const { title, data, audio } = event;
+
+					const { type, values } = data;
+					currentMeta = {
+						type,
+						values,
+						title,
+						audio,
 					};
 
-					const element = document.currentScript.parentElement;
+					localStorage.setItem('currentMeta', JSON.stringify(currentMeta));
 
-					const data = [null,null];
-
-					Promise.all([
-						import("./_app/immutable/entry/start.7d69d75f.js"),
-						import("./_app/immutable/entry/app.1111ac8c.js")
-					]).then(([kit, app]) => {
-						kit.start(app, element, {
-							node_ids: [0, 2],
-							data,
-							form: null,
-							error: null
-						});
+					audioQueue.push({
+						audio: audio || 'meta',
+						nickname: 'Sistema',
+						profilePictureUrl: '',
+						priority: MAX_PRIORITY
 					});
-				}
-			</script>
+				});
+
+				messagesInterval = setInterval(() => {
+					if (messagesQueue.length() > 0) {
+						lastMessage = messagesQueue.pop();
+
+					} else {
+						lastMessage = {
+							nickname: '',
+							message: '',
+							profilePictureUrl: '',
+							message: '',
+							color: ''
+						};
+					}
+
+
+				}, 4000);
+
+				document.getElementById('live_stream').src = window.iframeSrc;
+
+				window.ready = true;
+
+
+
+			}
+			
+		
+
+            window.addEventListener('load', () => {
+                setUp();
+            });
+	</script>
+</head>
+
+<body>
+	<div
+		style="position: absolute;width: 194px;height: 100px;z-index: 99;background-color: #16171b;bottom: 0px;right: 0;">
+	</div>
+	<div style="opacity:50%;bottom:1%; position:absolute;z-index: 998; right:0; width:60%" class="w-full items-center">
+	</div>
+	<main x-data="window.component">
+		<!-- <div style="position: absolute;width: 194px;height: 100px;z-index: 99;background-color: #16171b;bottom: 0px;right: 0;"
+			x-show.transition.duration.500ms="lastMessage.message.length > 0">
+			<div x-bind:style="'bottom: 400px; position:absolute;background-color:' + lastMessage.color + ';padding: 13px;z-index: 999; right:0; width:98%'"
+				class="inline-flex w-full items-center rounded-lg px-6 py-5 text-base" role="alert">
+				<img class="w-16 h-16" alt="user" xbind:src="lastMessage.profilePictureUrl" />
+				<div>
+					<strong class="text-bold text-xs" x-bind:style="'color: ' + lastMessage.textColor"
+						x-text="lastMessage.nickname"></strong>
+					<p x-bind:style="'color: ' + lastMessage.textColor +'; font-size: 10px'" class="p-2 text-xs"
+						x-text="lastMessage.message"></p>
+				</div>
+			</div> -->
 		</div>
-	</body>
+		<iframe id="live_stream" width="100%" height="400" frameborder="no" scrolling="no" allow="fullscreen"
+			title="Live feed"> </iframe>
+		<div class="bg-purple rounded-xl shadow-sm overflow-hidden p-1"  
+			style="height: 80px;left: 0%; width: 100%; position:absolute; top : 0px; z-index: 99">
+			<p class="text-white text-center text-bold">Meta:</p>
+			<p class="text-white text-center text-bold text-xl mt-4" x-data="{wakeUpSoundCoin : localStorage.getItem('wakeUpSoundCoin') || 0, wakeUpSoundCoinGoal: localStorage.getItem('wakeUpSoundCoinGoal') || 100}"
+             x-text="wakeUpSoundCoin  + '/' + wakeUpSoundCoinGoal">
+			</p>
+		</div>
+
+		<div class="container wrapper">
+			<canvas id="canvas" width="800" height="350"> </canvas>
+		</div>
+	</main>
+</body>
+
 </html>
